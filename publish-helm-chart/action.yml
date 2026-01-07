@@ -48,4 +48,4 @@ runs:
     - name: Push chart
       shell: bash
       run: |
-        helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/helm
+        helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
