@@ -10,7 +10,6 @@ inputs:
   chartPath:
     required: true
     description: Chart path to publish
-    default: "charts/${{ github.repository.name }}"
 
 runs:
   using: 'composite'
