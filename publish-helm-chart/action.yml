@@ -1,6 +1,12 @@
 name: 'Publish Helm chart'
 description: 'Publishes a Helm chart'
 inputs:
+  user:
+    required: true
+    description: User for publishing the chart
+  password:
+    required: true
+    description: Password for publish user
   chartPath:
     required: true
     description: Chart path to publish
@@ -15,6 +21,7 @@ runs:
 
     - name: Extract version from tag
       id: version
+      shell: bash
       run: |
         TAG="${GITHUB_REF_NAME}"
         VERSION="${TAG#v}"
@@ -22,20 +29,24 @@ runs:
         echo "version=$VERSION" >> $GITHUB_OUTPUT
 
     - name: Set Chart.yaml version
+      shell: bash
       run: |
         yq -i '.version = "${{ steps.version.outputs.version }}"' "${{ inputs.chartPath }}/Chart.yaml"
 
     - name: Login to GHCR
+      shell: bash
       run: |
-        echo "${{ secrets.GITHUB_TOKEN }}" | \
+        echo "${{ inputs.password }}" | \
         helm registry login ghcr.io \
-          --username ${{ github.actor }} \
+          --username ${{ inputs.user }} \
           --password-stdin
 
     - name: Package chart
+      shell: bash
       run: |
         helm package "${{ inputs.chartPath }}"
 
     - name: Push chart
+      shell: bash
       run: |
         helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/helm
