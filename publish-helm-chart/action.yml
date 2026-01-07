@@ -1,0 +1,41 @@
+name: 'Publish Helm chart'
+description: 'Publishes a Helm chart'
+inputs:
+  chartPath:
+    required: true
+    description: Chart path to publish
+    default: "charts/${{ github.repository.name }}"
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: azure/setup-helm@v4
+      with:
+        version: v3.14.0
+
+    - name: Extract version from tag
+      id: version
+      run: |
+        TAG="${GITHUB_REF_NAME}"
+        VERSION="${TAG#v}"
+        VERSION="${VERSION#chart-}"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Set Chart.yaml version
+      run: |
+        yq -i '.version = "${{ steps.version.outputs.version }}"' "${{ inputs.chartPath }}/Chart.yaml"
+
+    - name: Login to GHCR
+      run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | \
+        helm registry login ghcr.io \
+          --username ${{ github.actor }} \
+          --password-stdin
+
+    - name: Package chart
+      run: |
+        helm package "${{ inputs.chartPath }}"
+
+    - name: Push chart
+      run: |
+        helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/helm
