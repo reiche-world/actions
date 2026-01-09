@@ -1,0 +1,21 @@
+name: "Determine tag and version"
+description: "Determines the current tag version"
+outputs:
+  tag:
+    description: "Detected tag"
+    value: ${{ steps.version.outputs.tag }}
+  version:
+    description: "Detected version"
+    value: ${{ steps.version.outputs.version }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Extract version from tag
+      id: version
+      shell: bash
+      run: |
+        TAG="${GITHUB_REF_NAME}"
+        VERSION="${TAG#v}"
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "version=$VERSION" >> $GITHUB_OUTPUT

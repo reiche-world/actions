@@ -10,6 +10,12 @@ inputs:
   chartPath:
     required: true
     description: Chart path to publish
+  chartVersion:
+    required: true
+    description: Chart version
+  appVersion:
+    required: true
+    description: App version
 
 runs:
   using: 'composite'
@@ -18,19 +24,10 @@ runs:
       with:
         version: v3.14.0
 
-    - name: Extract version from tag
-      id: version
-      shell: bash
-      run: |
-        TAG="${GITHUB_REF_NAME}"
-        VERSION="${TAG#v}"
-        VERSION="${VERSION#chart-}"
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-    - name: Set Chart.yaml version
-      shell: bash
-      run: |
-        yq -i '.version = "${{ steps.version.outputs.version }}"' "${{ inputs.chartPath }}/Chart.yaml"
+#    - name: Set Chart.yaml version
+#      shell: bash
+#      run: |
+#        yq -i '.version = "${{ steps.version.outputs.version }}"' "${{ inputs.chartPath }}/Chart.yaml"
 
     - name: Login to GHCR
       shell: bash
@@ -43,7 +40,7 @@ runs:
     - name: Package chart
       shell: bash
       run: |
-        helm package "${{ inputs.chartPath }}"
+        helm package "${{ inputs.chartPath }}" --version "${{ inputs.chartVersion }}" --app-version "${{ inputs.appVersion }}"
 
     - name: Push chart
       shell: bash
