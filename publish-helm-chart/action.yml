@@ -16,6 +16,9 @@ inputs:
   appVersion:
     required: false
     description: App version
+  repoName:
+    required: false
+    description: Repository name to publish the chart
 
 runs:
   using: 'composite'
@@ -55,5 +58,13 @@ runs:
 
     - name: Push chart
       shell: bash
+      env:
+        REPO_NAME: ${{ inputs.repoName }}
+        ORIG_REPO_NAME: ${{ github.repository }}
       run: |
-        helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+        
+        if [ -z "${REPO_NAME}" ]; then
+          REPO_NAME="${ORIG_REPO_NAME}"
+        fi
+        
+        helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/${REPO_NAME}
