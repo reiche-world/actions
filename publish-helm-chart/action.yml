@@ -67,4 +67,4 @@ runs:
           REPO_NAME="${ORIG_REPO_NAME}"
         fi
         
-        helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/${REPO_NAME}
+        helm push *.tgz oci://ghcr.io/${REPO_NAME}
