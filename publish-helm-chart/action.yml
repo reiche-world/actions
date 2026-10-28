@@ -48,7 +48,7 @@ runs:
         CHART_PATH: ${{ inputs.chartPath }}
       run: |
         
-        ARGS=--version "${CHART_VERSION}"
+        ARGS="--version ${CHART_VERSION}"
         
         if [ -n "${APP_VERSION}" ]; then
           ARGS=${ARGS} --app-version "${APP_VERSION}"
