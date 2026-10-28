@@ -14,8 +14,11 @@ inputs:
     required: true
     description: Chart version
   appVersion:
-    required: true
+    required: false
     description: App version
+  repoName:
+    required: false
+    description: Repository name to publish the chart
 
 runs:
   using: 'composite'
@@ -39,10 +42,29 @@ runs:
 
     - name: Package chart
       shell: bash
+      env:
+        CHART_VERSION: ${{ inputs.chartVersion }}
+        APP_VERSION: ${{ inputs.appVersion }}
+        CHART_PATH: ${{ inputs.chartPath }}
       run: |
-        helm package "${{ inputs.chartPath }}" --version "${{ inputs.chartVersion }}" --app-version "${{ inputs.appVersion }}"
+        
+        ARGS="--version ${CHART_VERSION}"
+        
+        if [ -n "${APP_VERSION}" ]; then
+          ARGS=${ARGS} --app-version "${APP_VERSION}"
+        fi
+        
+        helm package "${CHART_PATH}" ${ARGS}
 
     - name: Push chart
       shell: bash
+      env:
+        REPO_NAME: ${{ inputs.repoName }}
+        ORIG_REPO_NAME: ${{ github.repository }}
       run: |
-        helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+        
+        if [ -z "${REPO_NAME}" ]; then
+          REPO_NAME="${ORIG_REPO_NAME}"
+        fi
+        
+        helm push *.tgz oci://ghcr.io/${REPO_NAME}
